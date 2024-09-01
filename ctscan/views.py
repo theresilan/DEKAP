@@ -27,12 +27,22 @@ import stat
 import shutil
 
 import zipfile
+import subprocess
 
 @api_view(['POST'])
 def ctscan(request):
     if request.method == 'POST':
-        os.chmod("D:/django/DEKAP/ctscan/dt/", stat.S_IWRITE)
-        shutil.rmtree("D:/django/DEKAP/ctscan/dt/extract")
+        print("msk")
+        os.chmod("/home/renataninagan1/DEKAP/ctscan/dt/", stat.S_IWRITE)
+        if os.path.exists("/home/renataninagan1/DEKAP/ctscan/dt/extract"):
+            shutil.rmtree("/home/renataninagan1/DEKAP/ctscan/dt/extract")
+        if os.path.exists("/home/renataninagan1/DEKAP/ctscan/dt/lung.raw"):
+            os.remove("/home/renataninagan1/DEKAP/ctscan/dt/lung.raw")
+        if os.path.exists("/home/renataninagan1/DEKAP/ctscan/dt/lung.mhd"):
+            os.remove("/home/renataninagan1/DEKAP/ctscan/dt/lung.mhd")
+        if os.path.exists("/home/renataninagan1/DEKAP/ctscan/dt/lung.zip"):
+            os.remove("/home/renataninagan1/DEKAP/ctscan/dt/lung.zip")
+
         file_obj = request.FILES.get('file')
 
         if not file_obj:
@@ -109,6 +119,7 @@ def ctscan(request):
             threshold = np.mean(centroids)
             # print(threshold)
             lung_masks = []
+
             for layer in ct_norm_improved:
                 ret, lung_roi = cv2.threshold(layer, threshold, 255, cv2.THRESH_BINARY_INV)
                 lung_roi = cv2.erode(lung_roi, kernel=np.ones([4,4]))
@@ -144,9 +155,7 @@ def ctscan(request):
 
                 external_contours = external_contours.astype(np.uint8)      # Final segmentated lungs mask
                 lung_masks.append(external_contours)
-
-            #extract from masked
-
+            
             extracted_lungs = []
             for lung, mask in zip(ct_norm_improved,lung_masks):
                 extracted_lungs.append(cv2.bitwise_and(lung, lung, mask=mask))
@@ -197,7 +206,7 @@ def ctscan(request):
                     img = cv2.rectangle(img, rect[0], rect[1], (255), 2)
 
             fpr_model = tf.keras.models.load_model("ctscan/dt/FPR_classifier_model.h5")
-
+            print("load cancer model")
             originals = copy.deepcopy(ct_norm_improved)
             final_boxes = []
             for i,(img,bbox) in enumerate(zip(originals, bboxes)):
@@ -257,32 +266,46 @@ def ctscan(request):
                         token = True
                 final_img_bbox.append(img)
                 cancer.append(token)
-
                 df = df.reset_index(drop=True)
                 df.head()
+                true_count = sum(cancer)
 
-                os.chmod("D:/django/DEKAP/ctscan/dt/", stat.S_IWRITE)
-                os.remove("D:/django/DEKAP/ctscan/dt/vid/detections.mp4")
+
+                print("sebelum vid, cancer :")
+                print(true_count)
 
                 folder = FILE.replace(".mhd", "")
                 # os.mkdir(f"/content/gdrive/MyDrive/LUNA/convert/vid")
                 # df.to_csv(f"/content/gdrive/MyDrive/LUNA/convert/vid/detections.csv", index=False)
-                fourcc = cv2.VideoWriter_fourcc(*'H264')
-                vid = cv2.VideoWriter(f"ctscan/dt/vid/detections.mp4", fourcc, 5.0, (512,512), False)
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                vid = cv2.VideoWriter(f"ctscan/dt/vid/test.mp4", fourcc, 5.0, (512,512), False)
                 for i in range(len(final_img_bbox)):
                     img = final_img_bbox[i].copy()
                     img = cv2.putText(img, f"Layer: {i}", (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255), 2)
                     vid.write(img)
                 vid.release()
+                print("beres release")
+                # Define the FFmpeg command
+                command = [
+                    'ffmpeg', '-y',
+                    '-i', "ctscan/dt/vid/test.mp4",
+                    '-pix_fmt', 'yuv420p',
+                    "ctscan/dt/vid/detections.mp4"
+                ]
+
+                # Run the FFmpeg command
+                subprocess.run(command, check=True)
 
                 file_path = "ctscan/dt/vid/detections.mp4"
-                php_url = "http://localhost/DEKAP/ctscan/verdict.php"
+                php_url = "https://dekap.sman5bdg.sch.id/ctscan/verdict.php"
 
                 with open(file_path, 'rb') as file:
                     files = {'file': ('detections.mp4', file)}
 
                     # Send the file using POST request
                     response = requests.post(php_url, files=files)
+
+                print("vid selesai dikirim")
 
                 data_payload = {
                     'cancer': cancer
@@ -294,21 +317,15 @@ def ctscan(request):
                     json=data_payload,
                     headers={'Content-Type': 'application/json'}
                 )
-                
-                print(response2.status_code)
-                print(response2.text)
-                # os.remove("D:/django/DEKAP/ctscan/dt/lung.raw")
-                # os.remove("D:/django/DEKAP/ctscan/dt/lung.mhd")
-                # os.remove("D:/django/DEKAP/ctscan/dt/lung.zip")
-                os.makedirs("D:/django/DEKAP/ctscan/dt/extract", exist_ok=True)
-                
+
                 # print(response2.status_code)  # Should be 200 if successful
                 # print(response2.text) 
-
+                os.makedirs("/home/renataninagan1/DEKAP/ctscan/dt/extract", exist_ok=True)
                 print("fin")
-                
+
             return Response({'message': 'yea', 'file_path': file_path}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'error': 'Invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+                                                                                                                                               332,1         Bot
