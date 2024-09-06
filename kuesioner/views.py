@@ -20,7 +20,7 @@ def kuesioner(request):
 
             print(df.columns)
 
-            with open("kuesioner/model2.pkl", "rb") as file:
+            with open("kuesioner/randomf.pkl", "rb") as file:
                 loadedmodel = pickle.load(file)
 
             test_predictions = loadedmodel.predict(df)
