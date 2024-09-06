@@ -267,10 +267,17 @@ def ctscan(request):
                 final_img_bbox.append(img)
                 cancer.append(token)
                 df = df.reset_index(drop=True)
+<<<<<<< Updated upstream
                 df.head()
                 true_count = sum(cancer)
 
 
+=======
+                df.head()  
+                true_count = sum(cancer)
+
+
+>>>>>>> Stashed changes
                 print("sebelum vid, cancer :")
                 print(true_count)
 
@@ -287,7 +294,11 @@ def ctscan(request):
                 print("beres release")
                 # Define the FFmpeg command
                 command = [
+<<<<<<< Updated upstream
                     'ffmpeg', '-y',
+=======
+                    'ffmpeg', '-y', 
+>>>>>>> Stashed changes
                     '-i', "ctscan/dt/vid/test.mp4",
                     '-pix_fmt', 'yuv420p',
                     "ctscan/dt/vid/detections.mp4"
@@ -304,6 +315,8 @@ def ctscan(request):
 
                     # Send the file using POST request
                     response = requests.post(php_url, files=files)
+            
+                print("vid selesai dikirim")
 
                 print("vid selesai dikirim")
 
@@ -317,7 +330,11 @@ def ctscan(request):
                     json=data_payload,
                     headers={'Content-Type': 'application/json'}
                 )
+<<<<<<< Updated upstream
 
+=======
+                
+>>>>>>> Stashed changes
                 # print(response2.status_code)  # Should be 200 if successful
                 # print(response2.text) 
                 os.makedirs("/home/renataninagan1/DEKAP/ctscan/dt/extract", exist_ok=True)

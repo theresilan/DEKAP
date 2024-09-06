@@ -14,6 +14,7 @@ def kuesioner(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            print(data);
             # Extract key1_value from the received data
             os.system('python filename.py')
             df = pd.DataFrame([data])
