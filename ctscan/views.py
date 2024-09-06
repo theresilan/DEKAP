@@ -267,17 +267,13 @@ def ctscan(request):
                 final_img_bbox.append(img)
                 cancer.append(token)
                 df = df.reset_index(drop=True)
-<<<<<<< Updated upstream
+
                 df.head()
                 true_count = sum(cancer)
 
-
-=======
                 df.head()  
                 true_count = sum(cancer)
 
-
->>>>>>> Stashed changes
                 print("sebelum vid, cancer :")
                 print(true_count)
 
@@ -294,11 +290,7 @@ def ctscan(request):
                 print("beres release")
                 # Define the FFmpeg command
                 command = [
-<<<<<<< Updated upstream
-                    'ffmpeg', '-y',
-=======
                     'ffmpeg', '-y', 
->>>>>>> Stashed changes
                     '-i', "ctscan/dt/vid/test.mp4",
                     '-pix_fmt', 'yuv420p',
                     "ctscan/dt/vid/detections.mp4"
@@ -318,8 +310,6 @@ def ctscan(request):
             
                 print("vid selesai dikirim")
 
-                print("vid selesai dikirim")
-
                 data_payload = {
                     'cancer': cancer
                 }
@@ -330,11 +320,6 @@ def ctscan(request):
                     json=data_payload,
                     headers={'Content-Type': 'application/json'}
                 )
-<<<<<<< Updated upstream
-
-=======
-                
->>>>>>> Stashed changes
                 # print(response2.status_code)  # Should be 200 if successful
                 # print(response2.text) 
                 os.makedirs("/home/renataninagan1/DEKAP/ctscan/dt/extract", exist_ok=True)
@@ -345,4 +330,3 @@ def ctscan(request):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'error': 'Invalid method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-                                                                                                                                               332,1         Bot
